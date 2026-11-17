@@ -1,7 +1,8 @@
-import re
 import math
+import random
+import re
 import statistics
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from typing import Any
 
 
@@ -33,7 +34,7 @@ class FormulaEngine:
         expr = expr.strip()
 
         # Function call
-        m = re.match(r'^([A-Z_][A-Z0-9_]*)\s*\((.*)\)$', expr, re.IGNORECASE | re.DOTALL)
+        m = re.match(r"^([A-Z_][A-Z0-9_]*)\s*\((.*)\)$", expr, re.IGNORECASE | re.DOTALL)
         if m:
             return self._call_fn(m.group(1).upper(), self._split_args(m.group(2)), ctx)
 
@@ -43,13 +44,15 @@ class FormulaEngine:
 
         # Number literal
         try:
-            return int(expr) if '.' not in expr else float(expr)
+            return int(expr) if "." not in expr else float(expr)
         except ValueError:
             pass
 
         # Boolean literals
-        if expr.upper() == "TRUE":  return True
-        if expr.upper() == "FALSE": return False
+        if expr.upper() == "TRUE":
+            return True
+        if expr.upper() == "FALSE":
+            return False
 
         # Context ref (A1, named range, etc.)
         if expr.upper() in ctx:
@@ -64,15 +67,17 @@ class FormulaEngine:
             if ch == '"':
                 in_str = not in_str
             if not in_str:
-                if ch == '(':  depth += 1
-                elif ch == ')': depth -= 1
-            if ch == ',' and depth == 0 and not in_str:
-                args.append(''.join(buf).strip())
+                if ch == "(":
+                    depth += 1
+                elif ch == ")":
+                    depth -= 1
+            if ch == "," and depth == 0 and not in_str:
+                args.append("".join(buf).strip())
                 buf = []
             else:
                 buf.append(ch)
         if buf:
-            args.append(''.join(buf).strip())
+            args.append("".join(buf).strip())
         return [a for a in args if a]
 
     def _call_fn(self, name: str, raw: list[str], ctx: dict) -> Any:
@@ -81,28 +86,54 @@ class FormulaEngine:
         nums = [float(v) for v in evall if isinstance(v, (int, float))]
 
         # ── Math ──────────────────────────────────────────────────────────────
-        if name == "SUM":       return sum(nums)
-        if name == "PRODUCT":   return math.prod(nums) if nums else 0
-        if name == "AVERAGE":   return statistics.mean(nums) if nums else 0
-        if name == "MIN":       return min(nums) if nums else 0
-        if name == "MAX":       return max(nums) if nums else 0
-        if name == "COUNT":     return len(nums)
-        if name == "COUNTA":    return len([v for v in evall if v is not None and v != ""])
-        if name == "ABS":       return abs(nums[0]) if nums else 0
-        if name == "ROUND":     return round(nums[0], int(nums[1]) if len(nums) > 1 else 0)
-        if name == "ROUNDUP":   return math.ceil(nums[0] * 10 ** int(nums[1] if len(nums) > 1 else 0)) / 10 ** int(nums[1] if len(nums) > 1 else 0)
-        if name == "ROUNDDOWN": return math.floor(nums[0] * 10 ** int(nums[1] if len(nums) > 1 else 0)) / 10 ** int(nums[1] if len(nums) > 1 else 0)
-        if name == "SQRT":      return math.sqrt(nums[0]) if nums else 0
-        if name == "POWER":     return math.pow(nums[0], nums[1]) if len(nums) >= 2 else 0
-        if name == "MOD":       return nums[0] % nums[1] if len(nums) >= 2 else 0
-        if name == "INT":       return int(math.floor(nums[0])) if nums else 0
-        if name == "CEILING":   return math.ceil(nums[0]) if nums else 0
-        if name == "FLOOR":     return math.floor(nums[0]) if nums else 0
-        if name == "LOG":       return math.log(nums[0], nums[1] if len(nums) > 1 else 10) if nums else 0
-        if name == "LN":        return math.log(nums[0]) if nums else 0
-        if name == "EXP":       return math.exp(nums[0]) if nums else 0
-        if name == "PI":        return math.pi
-        if name == "RAND":      import random; return random.random()
+        if name == "SUM":
+            return sum(nums)
+        if name == "PRODUCT":
+            return math.prod(nums) if nums else 0
+        if name == "AVERAGE":
+            return statistics.mean(nums) if nums else 0
+        if name == "MIN":
+            return min(nums) if nums else 0
+        if name == "MAX":
+            return max(nums) if nums else 0
+        if name == "COUNT":
+            return len(nums)
+        if name == "COUNTA":
+            return len([v for v in evall if v is not None and v != ""])
+        if name == "ABS":
+            return abs(nums[0]) if nums else 0
+        if name == "ROUND":
+            return round(nums[0], int(nums[1]) if len(nums) > 1 else 0)
+        if name == "ROUNDUP":
+            return math.ceil(nums[0] * 10 ** int(nums[1] if len(nums) > 1 else 0)) / 10 ** int(
+                nums[1] if len(nums) > 1 else 0
+            )
+        if name == "ROUNDDOWN":
+            return math.floor(nums[0] * 10 ** int(nums[1] if len(nums) > 1 else 0)) / 10 ** int(
+                nums[1] if len(nums) > 1 else 0
+            )
+        if name == "SQRT":
+            return math.sqrt(nums[0]) if nums else 0
+        if name == "POWER":
+            return math.pow(nums[0], nums[1]) if len(nums) >= 2 else 0
+        if name == "MOD":
+            return nums[0] % nums[1] if len(nums) >= 2 else 0
+        if name == "INT":
+            return int(math.floor(nums[0])) if nums else 0
+        if name == "CEILING":
+            return math.ceil(nums[0]) if nums else 0
+        if name == "FLOOR":
+            return math.floor(nums[0]) if nums else 0
+        if name == "LOG":
+            return math.log(nums[0], nums[1] if len(nums) > 1 else 10) if nums else 0
+        if name == "LN":
+            return math.log(nums[0]) if nums else 0
+        if name == "EXP":
+            return math.exp(nums[0]) if nums else 0
+        if name == "PI":
+            return math.pi
+        if name == "RAND":
+            return random.random()
 
         # ── Conditional math ─────────────────────────────────────────────────
         if name == "SUMIF":
@@ -132,10 +163,14 @@ class FormulaEngine:
                     return evall[i + 1]
             return None
 
-        if name == "AND":  return all(bool(v) for v in evall)
-        if name == "OR":   return any(bool(v) for v in evall)
-        if name == "NOT":  return not bool(evall[0]) if evall else True
-        if name == "XOR":  return sum(bool(v) for v in evall) % 2 == 1
+        if name == "AND":
+            return all(bool(v) for v in evall)
+        if name == "OR":
+            return any(bool(v) for v in evall)
+        if name == "NOT":
+            return not bool(evall[0]) if evall else True
+        if name == "XOR":
+            return sum(bool(v) for v in evall) % 2 == 1
 
         if name == "IFERROR":
             try:
@@ -158,10 +193,14 @@ class FormulaEngine:
             return evall[i] if i < len(evall) else None
 
         # ── Text ──────────────────────────────────────────────────────────────
-        if name == "LEN":        return len(str(evall[0])) if evall else 0
-        if name == "UPPER":      return str(evall[0]).upper() if evall else ""
-        if name == "LOWER":      return str(evall[0]).lower() if evall else ""
-        if name == "TRIM":       return str(evall[0]).strip() if evall else ""
+        if name == "LEN":
+            return len(str(evall[0])) if evall else 0
+        if name == "UPPER":
+            return str(evall[0]).upper() if evall else ""
+        if name == "LOWER":
+            return str(evall[0]).lower() if evall else ""
+        if name == "TRIM":
+            return str(evall[0]).strip() if evall else ""
         if name == "PROPER":
             return str(evall[0]).title() if evall else ""
         if name in ("CONCAT", "CONCATENATE"):
@@ -178,13 +217,14 @@ class FormulaEngine:
             s = str(evall[0])
             start = max(0, int(nums[1]) - 1) if len(nums) > 1 else 0
             length = int(nums[2]) if len(nums) > 2 else len(s)
-            return s[start:start + length]
+            return s[start : start + length]
         if name == "FIND":
             needle = str(evall[0])
             haystack = str(evall[1])
             start = int(nums[2]) - 1 if len(nums) > 2 else 0
             idx = haystack.find(needle, start)
-            if idx == -1: raise ValueError(f"'{needle}' not found")
+            if idx == -1:
+                raise ValueError(f"'{needle}' not found")
             return idx + 1
         if name == "SEARCH":
             needle = str(evall[0]).lower()
@@ -202,7 +242,7 @@ class FormulaEngine:
             start = max(0, int(nums[1]) - 1) if len(nums) > 1 else 0
             length = int(nums[2]) if len(nums) > 2 else 0
             replacement = str(evall[3]) if len(evall) > 3 else ""
-            return s[:start] + replacement + s[start + length:]
+            return s[:start] + replacement + s[start + length :]
         if name == "REPT":
             return str(evall[0]) * int(nums[1]) if len(evall) >= 2 else ""
         if name == "TEXT":
@@ -212,20 +252,30 @@ class FormulaEngine:
                 return f"{float(val):,.2f}" if "." in fmt else f"{float(val):,.0f}"
             return str(val)
         if name == "VALUE":
-            try: return float(str(evall[0]).replace(",", "")) if evall else 0
-            except ValueError: return 0
+            try:
+                return float(str(evall[0]).replace(",", "")) if evall else 0
+            except ValueError:
+                return 0
         if name == "EXACT":
             return str(evall[0]) == str(evall[1]) if len(evall) >= 2 else False
 
         # ── Date ──────────────────────────────────────────────────────────────
-        if name == "TODAY":   return date.today().isoformat()
-        if name == "NOW":     return datetime.now().isoformat()
-        if name == "YEAR":    return self._parse_date(evall[0]).year if evall else None
-        if name == "MONTH":   return self._parse_date(evall[0]).month if evall else None
-        if name == "DAY":     return self._parse_date(evall[0]).day if evall else None
-        if name == "HOUR":    return self._parse_datetime(evall[0]).hour if evall else None
-        if name == "MINUTE":  return self._parse_datetime(evall[0]).minute if evall else None
-        if name == "SECOND":  return self._parse_datetime(evall[0]).second if evall else None
+        if name == "TODAY":
+            return date.today().isoformat()
+        if name == "NOW":
+            return datetime.now().isoformat()
+        if name == "YEAR":
+            return self._parse_date(evall[0]).year if evall else None
+        if name == "MONTH":
+            return self._parse_date(evall[0]).month if evall else None
+        if name == "DAY":
+            return self._parse_date(evall[0]).day if evall else None
+        if name == "HOUR":
+            return self._parse_datetime(evall[0]).hour if evall else None
+        if name == "MINUTE":
+            return self._parse_datetime(evall[0]).minute if evall else None
+        if name == "SECOND":
+            return self._parse_datetime(evall[0]).second if evall else None
         if name == "WEEKDAY":
             d = self._parse_date(evall[0])
             return d.isoweekday() % 7 + 1  # 1=Sunday like Excel
@@ -245,14 +295,19 @@ class FormulaEngine:
             d2 = self._parse_date(evall[1]) if len(evall) > 1 else date.today()
             unit = str(evall[2]).upper() if len(evall) > 2 else "D"
             delta = d2 - d1
-            if unit == "D": return delta.days
-            if unit == "M": return (d2.year - d1.year) * 12 + (d2.month - d1.month)
-            if unit == "Y": return d2.year - d1.year
+            if unit == "D":
+                return delta.days
+            if unit == "M":
+                return (d2.year - d1.year) * 12 + (d2.month - d1.month)
+            if unit == "Y":
+                return d2.year - d1.year
             return delta.days
 
         # ── Statistical ───────────────────────────────────────────────────────
-        if name == "MEDIAN":      return statistics.median(nums) if nums else 0
-        if name == "MODE":        return statistics.mode(nums) if nums else 0
+        if name == "MEDIAN":
+            return statistics.median(nums) if nums else 0
+        if name == "MODE":
+            return statistics.mode(nums) if nums else 0
         if name in ("STDEV", "STDEV.S"):
             return statistics.stdev(nums) if len(nums) >= 2 else 0
         if name in ("STDEVP", "STDEV.P"):
@@ -265,7 +320,8 @@ class FormulaEngine:
             if len(nums) >= 2:
                 data = sorted(nums[:-1])
                 k = nums[-1]
-                if not data: return 0
+                if not data:
+                    return 0
                 idx = k * (len(data) - 1)
                 lo, hi = int(idx), min(int(idx) + 1, len(data) - 1)
                 return data[lo] + (data[hi] - data[lo]) * (idx - lo)
@@ -314,7 +370,8 @@ class FormulaEngine:
             if len(nums) >= 3:
                 rate, nper, pmt = nums[0], nums[1], nums[2]
                 fv = nums[3] if len(nums) > 3 else 0
-                if rate == 0: return -pmt * nper - fv
+                if rate == 0:
+                    return -pmt * nper - fv
                 return -(pmt * ((1 - (1 + rate) ** -nper) / rate) + fv * (1 + rate) ** -nper)
             return 0
         if name == "FV":
@@ -322,7 +379,8 @@ class FormulaEngine:
             if len(nums) >= 3:
                 rate, nper, pmt = nums[0], nums[1], nums[2]
                 pv = nums[3] if len(nums) > 3 else 0
-                if rate == 0: return -(pv + pmt * nper)
+                if rate == 0:
+                    return -(pv + pmt * nper)
                 return -(pv * (1 + rate) ** nper + pmt * ((1 + rate) ** nper - 1) / rate)
             return 0
         if name == "NPV":
@@ -375,26 +433,36 @@ class FormulaEngine:
     def _matches(self, value: Any, criteria: Any) -> bool:
         if isinstance(criteria, str):
             if criteria.startswith(">="):
-                try: return float(value) >= float(criteria[2:])
-                except Exception: return False
+                try:
+                    return float(value) >= float(criteria[2:])
+                except Exception:
+                    return False
             if criteria.startswith("<="):
-                try: return float(value) <= float(criteria[2:])
-                except Exception: return False
+                try:
+                    return float(value) <= float(criteria[2:])
+                except Exception:
+                    return False
             if criteria.startswith(">"):
-                try: return float(value) > float(criteria[1:])
-                except Exception: return False
+                try:
+                    return float(value) > float(criteria[1:])
+                except Exception:
+                    return False
             if criteria.startswith("<"):
-                try: return float(value) < float(criteria[1:])
-                except Exception: return False
+                try:
+                    return float(value) < float(criteria[1:])
+                except Exception:
+                    return False
             if criteria.startswith("<>"):
                 return str(value) != criteria[2:]
             return str(value) == criteria
         return value == criteria
 
     def _parse_date(self, val: Any) -> date:
-        if isinstance(val, date): return val
+        if isinstance(val, date):
+            return val
         return datetime.fromisoformat(str(val)).date()
 
     def _parse_datetime(self, val: Any) -> datetime:
-        if isinstance(val, datetime): return val
+        if isinstance(val, datetime):
+            return val
         return datetime.fromisoformat(str(val))

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { BarChart3, Sparkles, FileSpreadsheet, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { DEMO_MODE } from '@/demo/config'
+import { useDemoLogin } from '@/demo/useDemoLogin'
 
 const features = [
   { icon: FileSpreadsheet, title: 'Upload & Parse', desc: 'Drag-and-drop .xlsx, .xls, and .csv files. Multi-sheet support out of the box.' },
@@ -10,6 +12,7 @@ const features = [
 ]
 
 export default function Landing() {
+  const startDemo = useDemoLogin()
   return (
     <div className="min-h-screen bg-surface-base">
       {/* Nav */}
@@ -41,9 +44,13 @@ export default function Landing() {
           and natural language querying — no SQL, no Python needed.
         </p>
         <div className="flex gap-4 justify-center">
-          <Link to="/register">
-            <Button size="lg">Start for free</Button>
-          </Link>
+          {DEMO_MODE ? (
+            <Button size="lg" onClick={startDemo}>Try Demo</Button>
+          ) : (
+            <Link to="/register">
+              <Button size="lg">Start for free</Button>
+            </Link>
+          )}
           <Link to="/login">
             <Button variant="secondary" size="lg">Sign in</Button>
           </Link>

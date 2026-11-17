@@ -2,10 +2,11 @@ import io
 import math
 import warnings
 from datetime import date, datetime
+from pathlib import Path
+
+import numpy as np
 import openpyxl
 import pandas as pd
-import numpy as np
-from pathlib import Path
 
 
 class ExcelParser:
@@ -47,8 +48,10 @@ class ExcelParser:
         return self._dataframe_to_sheet(df, ws.title, index)
 
     def _dataframe_to_sheet(self, df: pd.DataFrame, name: str, index: int) -> dict:
-        df = df.astype(object).where(pd.notnull(df), None)
+        # Detect column types on the original dtypes: casting to ``object`` first would
+        # make every numeric column look non-numeric.
         columns = self._detect_columns(df)
+        df = df.astype(object).where(pd.notnull(df), None)
         records = [
             {str(key): self._json_safe_value(value) for key, value in row.items()}
             for row in df.head(1000).to_dict(orient="records")
@@ -71,13 +74,15 @@ class ExcelParser:
             sample = []
             for v in col_series.head(5).tolist():
                 sample.append(self._json_safe_value(v))
-            columns.append({
-                "name": str(col),
-                "type": col_type,
-                "nullable": bool(df[col].isna().any()),
-                "unique_count": int(df[col].nunique()),
-                "sample_values": sample,
-            })
+            columns.append(
+                {
+                    "name": str(col),
+                    "type": col_type,
+                    "nullable": bool(df[col].isna().any()),
+                    "unique_count": int(df[col].nunique()),
+                    "sample_values": sample,
+                }
+            )
         return columns
 
     def _infer_type(self, series: pd.Series, col_name: str) -> str:

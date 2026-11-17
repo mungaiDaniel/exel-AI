@@ -1,7 +1,9 @@
-import statistics
 import json
+import statistics
+
 import anthropic
-from config import settings
+
+from app.core.config import settings
 
 
 def detect_statistical_anomalies(columns: list[dict], data: list[dict]) -> list[dict]:
@@ -11,7 +13,9 @@ def detect_statistical_anomalies(columns: list[dict], data: list[dict]) -> list[
         if col["type"] not in ("number", "currency"):
             continue
         name = col["name"]
-        values = [float(row[name]) for row in data if row.get(name) is not None and str(row.get(name, "")).strip() != ""]
+        values = [
+            float(row[name]) for row in data if row.get(name) is not None and str(row.get(name, "")).strip() != ""
+        ]
         if len(values) < 4:
             continue
         mean = statistics.mean(values)
@@ -28,15 +32,17 @@ def detect_statistical_anomalies(columns: list[dict], data: list[dict]) -> list[
                 continue
             z = abs((val - mean) / stdev)
             if z > 2.5:
-                anomalies.append({
-                    "column": name,
-                    "row_index": i,
-                    "value": val,
-                    "z_score": round(z, 2),
-                    "mean": round(mean, 4),
-                    "stdev": round(stdev, 4),
-                    "severity": "high" if z > 3 else "medium",
-                })
+                anomalies.append(
+                    {
+                        "column": name,
+                        "row_index": i,
+                        "value": val,
+                        "z_score": round(z, 2),
+                        "mean": round(mean, 4),
+                        "stdev": round(stdev, 4),
+                        "severity": "high" if z > 3 else "medium",
+                    }
+                )
     return anomalies[:20]  # cap at 20
 
 
@@ -51,15 +57,17 @@ async def explain_anomalies(sheet_name: str, anomalies: list[dict]) -> str:
     response = await client.messages.create(
         model=settings.AI_MODEL,
         max_tokens=600,
-        messages=[{
-            "role": "user",
-            "content": (
-                f'I detected these statistical anomalies in the sheet "{sheet_name}":\n\n'
-                f"{anomaly_summary}\n\n"
-                "In 3-5 sentences, explain what these anomalies mean in plain English. "
-                "Mention which columns are affected and why the flagged values are unusual. "
-                "Be concise and business-friendly."
-            ),
-        }],
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    f'I detected these statistical anomalies in the sheet "{sheet_name}":\n\n'
+                    f"{anomaly_summary}\n\n"
+                    "In 3-5 sentences, explain what these anomalies mean in plain English. "
+                    "Mention which columns are affected and why the flagged values are unusual. "
+                    "Be concise and business-friendly."
+                ),
+            }
+        ],
     )
     return response.content[0].text

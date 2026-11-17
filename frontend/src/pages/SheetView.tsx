@@ -11,7 +11,7 @@ import {
   Cell, ComposedChart, Line, Pie, PieChart as RePieChart,
   ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis,
 } from 'recharts'
-import { createColumnHelper } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -237,13 +237,11 @@ export default function SheetView() {
 
   const tableColumns = useMemo(() => {
     if (!sheet) return []
-    const helper = createColumnHelper<Record<string, unknown>>()
-    return sheet.columns.map(col =>
-      helper.accessor(col.name as never, {
-        header: col.name,
-        cell: info => String(info.getValue() ?? ''),
-      })
-    )
+    return sheet.columns.map((col): ColumnDef<Record<string, unknown>> => ({
+      accessorKey: col.name,
+      header: col.name,
+      cell: info => String(info.getValue() ?? ''),
+    }))
   }, [sheet])
 
   const handleExportCSV = async () => {
@@ -804,7 +802,7 @@ export default function SheetView() {
               </div>
             )}
 
-            <DataTable data={tableData} columns={tableColumns as never} searchable={!activeFilterCount} />
+            <DataTable data={tableData} columns={tableColumns} searchable={!activeFilterCount} />
             {queryResult?.has_more && (
               <p className="text-xs text-[--color-text-tertiary] text-center">
                 Showing first {queryResult.data.length.toLocaleString()} of {queryResult.total.toLocaleString()} matching rows

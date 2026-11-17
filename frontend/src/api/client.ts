@@ -1,10 +1,16 @@
 import axios from 'axios'
+import { DEMO_MODE } from '@/demo/config'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
+  // Demo mode: answer every request from the in-memory mock (lazy-loaded; no network).
+  ...(DEMO_MODE && {
+    adapter: (config: Parameters<typeof import('@/demo/adapter').demoAdapter>[0]) =>
+      import('@/demo/adapter').then(m => m.demoAdapter(config)),
+  }),
 })
 
 apiClient.interceptors.request.use((config) => {

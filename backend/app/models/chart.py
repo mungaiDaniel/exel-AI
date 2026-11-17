@@ -1,16 +1,20 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, func, ForeignKey
+
+from sqlalchemy import ForeignKey, String, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from app.models.base import Base
+
+from app.models.base import JSONB, Base
 
 
 class Chart(Base):
     __tablename__ = "charts"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    dashboard_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("dashboards.id", ondelete="CASCADE"), nullable=False, index=True)
+    dashboard_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("dashboards.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     sheet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("sheets.id"), nullable=True)
     title: Mapped[str] = mapped_column(String(255), nullable=True)
     chart_type: Mapped[str] = mapped_column(String(50), nullable=False)

@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
 import { AppShell } from '@/components/layout/AppShell'
+import { DemoBanner } from '@/components/ui/DemoBanner'
 
 import Landing         from '@/pages/Landing'
 import Login           from '@/pages/Login'
@@ -47,6 +48,7 @@ export default function App() {
             },
           }}
         />
+        <DemoBanner />
         <Routes>
           {/* Public */}
           <Route path="/" element={<Landing />} />

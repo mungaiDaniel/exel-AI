@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import String, cast, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, cast, String
 
-from app.core.database import get_db
 from app.api.deps import get_current_user
+from app.core.database import get_db
+from app.models.sheet import Sheet
 from app.models.user import User
 from app.models.workbook import Workbook
-from app.models.sheet import Sheet
 
 router = APIRouter()
 
@@ -25,10 +25,12 @@ async def search(
 
     # ── Workbooks by name ────────────────────────────────────────────────────
     wb_result = await db.execute(
-        select(Workbook).where(
+        select(Workbook)
+        .where(
             Workbook.user_id == current_user.id,
             Workbook.name.ilike(f"%{term}%"),
-        ).limit(5)
+        )
+        .limit(5)
     )
     workbooks = wb_result.scalars().all()
 
@@ -42,7 +44,8 @@ async def search(
                 Sheet.name.ilike(f"%{term}%"),
                 cast(Sheet.columns, String).ilike(f"%{term}%"),
             ),
-        ).limit(10)
+        )
+        .limit(10)
     )
     meta_sheets = sh_result.scalars().all()
     meta_sheet_ids = {str(s.id) for s in meta_sheets}
@@ -54,7 +57,8 @@ async def search(
         .where(
             Workbook.user_id == current_user.id,
             cast(Sheet.data, String).ilike(f"%{term}%"),
-        ).limit(8)
+        )
+        .limit(8)
     )
     data_sheets = [s for s in data_sh_result.scalars().all() if str(s.id) not in meta_sheet_ids]
 
@@ -62,7 +66,7 @@ async def search(
     data_hits = []
     for sheet in data_sheets:
         matching_rows = []
-        for row in (sheet.data or []):
+        for row in sheet.data or []:
             if any(term in str(v).lower() for v in row.values()):
                 # Return only the columns that actually contain the term
                 snippet = {k: v for k, v in row.items() if term in str(v).lower()}
@@ -70,16 +74,17 @@ async def search(
                 if len(matching_rows) >= 3:
                     break
         if matching_rows:
-            data_hits.append({
-                "sheet_id": str(sheet.id),
-                "sheet_name": sheet.name,
-                "workbook_id": str(sheet.workbook_id),
-                "match_count": sum(
-                    1 for r in (sheet.data or [])
-                    if any(term in str(v).lower() for v in r.values())
-                ),
-                "sample_rows": matching_rows,
-            })
+            data_hits.append(
+                {
+                    "sheet_id": str(sheet.id),
+                    "sheet_name": sheet.name,
+                    "workbook_id": str(sheet.workbook_id),
+                    "match_count": sum(
+                        1 for r in (sheet.data or []) if any(term in str(v).lower() for v in r.values())
+                    ),
+                    "sample_rows": matching_rows,
+                }
+            )
 
     return {
         "query": q,
@@ -100,10 +105,7 @@ async def search(
                 "workbook_id": str(s.workbook_id),
                 "name": s.name,
                 "row_count": s.row_count,
-                "matching_columns": [
-                    c["name"] for c in (s.columns or [])
-                    if term in c["name"].lower()
-                ],
+                "matching_columns": [c["name"] for c in (s.columns or []) if term in c["name"].lower()],
                 "match": "sheet" if term in s.name.lower() else "column",
             }
             for s in meta_sheets

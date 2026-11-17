@@ -1,7 +1,9 @@
 import json
 import re
+
 import anthropic
-from config import settings
+
+from app.core.config import settings
 
 
 class ClaudeService:
@@ -39,10 +41,12 @@ class ClaudeService:
         response = await self.client.messages.create(
             model=self.model,
             max_tokens=500,
-            messages=[{
-                "role": "user",
-                "content": f"Explain this Excel formula in plain English, step by step: {formula}",
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Explain this Excel formula in plain English, step by step: {formula}",
+                }
+            ],
         )
         return response.content[0].text
 
@@ -51,17 +55,19 @@ class ClaudeService:
         response = await self.client.messages.create(
             model=self.model,
             max_tokens=1000,
-            messages=[{
-                "role": "user",
-                "content": (
-                    f"{context}\n\n"
-                    "Generate 3 key insights from this data. "
-                    'Return a JSON array of strings only, e.g. ["insight 1", "insight 2", "insight 3"]'
-                ),
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        f"{context}\n\n"
+                        "Generate 3 key insights from this data. "
+                        'Return a JSON array of strings only, e.g. ["insight 1", "insight 2", "insight 3"]'
+                    ),
+                }
+            ],
         )
         text = response.content[0].text
-        match = re.search(r'\[.*?\]', text, re.DOTALL)
+        match = re.search(r"\[.*?\]", text, re.DOTALL)
         if match:
             try:
                 return json.loads(match.group())

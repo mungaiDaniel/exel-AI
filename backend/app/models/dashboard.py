@@ -1,17 +1,20 @@
 import uuid
-import secrets
 from datetime import datetime
-from sqlalchemy import String, Boolean, func, ForeignKey
+
+from sqlalchemy import Boolean, ForeignKey, String, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from app.models.base import Base
+
+from app.models.base import JSONB, Base
 
 
 class Dashboard(Base):
     __tablename__ = "dashboards"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workbook_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workbooks.id", ondelete="CASCADE"), nullable=False, index=True)
+    workbook_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workbooks.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     layout: Mapped[list] = mapped_column(JSONB, default=list)

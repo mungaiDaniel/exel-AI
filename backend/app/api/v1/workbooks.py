@@ -1,23 +1,25 @@
-import uuid
+import logging
 import re
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+import uuid
 
-from app.core.database import get_db
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_current_user
+from app.core.config import settings
+from app.core.database import get_db
+from app.models.sheet import Sheet
 from app.models.user import User
 from app.models.workbook import Workbook
-from app.models.sheet import Sheet
-from app.schemas.workbook import WorkbookOut, WorkbookList
 from app.schemas.sheet import SheetOut
-from app.services.excel.parser import ExcelParser
-from app.services.excel.chart_advisor import ChartAdvisor
-from app.services.storage_service import StorageService
+from app.schemas.workbook import WorkbookList, WorkbookOut
 from app.services.ai.claude_service import ClaudeService
-from config import settings
+from app.services.excel.parser import ExcelParser
+from app.services.storage_service import StorageService
 
 router = APIRouter()
+log = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {".xlsx", ".xls", ".xlsm", ".csv"}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
@@ -60,7 +62,7 @@ async def upload_workbook(
 
     workbook = Workbook(
         user_id=current_user.id,
-        name=re.sub(r'\.[^.]+$', '', file.filename or "Workbook"),
+        name=re.sub(r"\.[^.]+$", "", file.filename or "Workbook"),
         file_name=file.filename or "upload",
         file_size=len(content),
         file_url=file_url,
@@ -73,7 +75,6 @@ async def upload_workbook(
     await db.flush()
 
     # Persist sheets
-    advisor = ChartAdvisor()
     for sheet_data in parsed["sheets"]:
         sheet = Sheet(
             workbook_id=workbook.id,
@@ -97,7 +98,7 @@ async def upload_workbook(
             workbook.meta = {**workbook.meta, "insights": insights}
             await db.flush()
         except Exception:
-            pass  # insights are best-effort; don't fail the upload
+            log.warning("Insight generation failed; continuing without insights", exc_info=True)
 
     await db.refresh(workbook)
     return workbook
@@ -138,7 +139,5 @@ async def list_sheets(
     wb = await db.get(Workbook, workbook_id)
     if not wb or wb.user_id != current_user.id:
         raise HTTPException(404, "Workbook not found")
-    result = await db.execute(
-        select(Sheet).where(Sheet.workbook_id == workbook_id).order_by(Sheet.index)
-    )
+    result = await db.execute(select(Sheet).where(Sheet.workbook_id == workbook_id).order_by(Sheet.index))
     return result.scalars().all()
