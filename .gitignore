@@ -51,3 +51,6 @@ alembic/versions/__pycache__/
 # Misc
 .coverage
 coverage.xml
+
+# Local tooling
+.claude/

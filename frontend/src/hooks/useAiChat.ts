@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
+import { DEMO_MODE } from '@/demo/config'
+import { MockChatSocket } from '@/demo/mockSocket'
 
 export interface ChatMsg {
   id: string
@@ -43,7 +45,7 @@ export function useAiChat({ workbookId }: UseAiChatOptions) {
     clearReconnectTimer()
 
     const url = `${WS_BASE}/${workbookId}?token=${encodeURIComponent(token)}`
-    const ws = new WebSocket(url)
+    const ws = (DEMO_MODE ? new MockChatSocket(workbookId) : new WebSocket(url)) as WebSocket
     wsRef.current = ws
 
     ws.onopen = () => {

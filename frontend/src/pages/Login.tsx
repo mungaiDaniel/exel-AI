@@ -5,10 +5,13 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { authApi } from '@/api/auth.api'
 import { useAuthStore } from '@/store/authStore'
+import { DEMO_MODE } from '@/demo/config'
+import { useDemoLogin } from '@/demo/useDemoLogin'
 
 export default function Login() {
   const navigate = useNavigate()
   const { setTokens } = useAuthStore()
+  const startDemo = useDemoLogin()
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -63,6 +66,19 @@ export default function Login() {
           <Button type="submit" className="w-full" loading={loading}>
             Sign in
           </Button>
+          {DEMO_MODE && (
+            <>
+              <div className="flex items-center gap-3 text-xs text-[--color-text-secondary]">
+                <span className="h-px flex-1 bg-[--color-border]" />or<span className="h-px flex-1 bg-[--color-border]" />
+              </div>
+              <Button type="button" variant="secondary" className="w-full" onClick={startDemo}>
+                Try Demo
+              </Button>
+              <p className="text-center text-xs text-[--color-text-secondary]">
+                Signs you in as demo@example.com with sample data — no account needed.
+              </p>
+            </>
+          )}
           <p className="text-center text-sm text-[--color-text-secondary]">
             Don't have an account?{' '}
             <Link to="/register" className="text-brand-primary hover:underline">Create one</Link>
