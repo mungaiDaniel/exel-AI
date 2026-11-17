@@ -1,16 +1,20 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Integer, Text, func, ForeignKey
+
+from sqlalchemy import ForeignKey, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from app.models.base import Base
+
+from app.models.base import JSONB, Base
 
 
 class Sheet(Base):
     __tablename__ = "sheets"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workbook_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workbooks.id", ondelete="CASCADE"), nullable=False, index=True)
+    workbook_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workbooks.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     index: Mapped[int] = mapped_column(Integer, nullable=False)
     row_count: Mapped[int] = mapped_column(Integer, default=0)

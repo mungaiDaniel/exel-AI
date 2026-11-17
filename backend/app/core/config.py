@@ -1,15 +1,14 @@
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator
-import json
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
+    model_config = SettingsConfigDict(env_file=(".env", "../.env"), case_sensitive=True, extra="ignore")
 
     # App
     APP_NAME: str = "ExcelAI Dashboard"
     DEBUG: bool = False
-    SECRET_KEY: str = "dev-secret-key-change-in-production"
+    SECRET_KEY: str = "dev-secret-key-change-in-production"  # reserved for future signed cookies
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
     # Database
@@ -29,17 +28,29 @@ class Settings(BaseSettings):
     LOCAL_STORAGE_DIR: str = "uploads"
 
     # AI — set AI_PROVIDER to "groq" to use the free Groq tier instead of Anthropic
-    AI_PROVIDER: str = "anthropic"   # "anthropic" | "groq"
+    AI_PROVIDER: str = "anthropic"  # "anthropic" | "groq"
     ANTHROPIC_API_KEY: str = ""
     AI_MODEL: str = "claude-sonnet-4-6"
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
 
     # JWT
-    JWT_SECRET_KEY: str = "dev-jwt-secret-change-in-production"
+    JWT_SECRET_KEY: str = "dev-jwt-secret-change-in-production"  # MUST be overridden outside DEBUG
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+
+    @model_validator(mode="after")
+    def reject_insecure_secrets(self):
+        """Fail fast if a non-debug deployment is using a default/weak JWT secret."""
+        weak = self.JWT_SECRET_KEY.startswith(("dev-", "change")) or len(self.JWT_SECRET_KEY) < 32
+        if weak and not self.DEBUG:
+            raise ValueError(
+                "JWT_SECRET_KEY is missing or weak. Set a random value of at least 32 "
+                'characters (e.g. `python -c "import secrets; print(secrets.token_urlsafe(48))"`), '
+                "or set DEBUG=true for local development."
+            )
+        return self
 
     @field_validator("DEBUG", mode="before")
     @classmethod

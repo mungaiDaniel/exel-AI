@@ -1,12 +1,13 @@
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
 from app.api.deps import get_current_user
-from app.models.user import User
+from app.core.database import get_db
 from app.models.sheet import Sheet
-from app.schemas.sheet import SheetOut, SheetDataOut
+from app.models.user import User
+from app.schemas.sheet import SheetDataOut, SheetOut
 
 router = APIRouter()
 
@@ -23,6 +24,7 @@ async def _get_sheet_for_user(sheet_id: uuid.UUID, user: User, db: AsyncSession)
     if not sheet:
         raise HTTPException(404, "Sheet not found")
     from app.models.workbook import Workbook
+
     wb = await db.get(Workbook, sheet.workbook_id)
     if not wb or wb.user_id != user.id:
         raise HTTPException(404, "Sheet not found")
@@ -69,7 +71,7 @@ async def query_sheet_data(
     current_user: User = Depends(get_current_user),
 ):
     """
-    APINESS-style filterable data query.
+    Filterable data query over a sheet's rows.
 
     Reserved params: q, limit, offset, sort_by, sort_dir
     Column filters:
@@ -89,9 +91,9 @@ async def query_sheet_data(
         offset = max(int(params.pop("offset", 0)), 0)
     except ValueError:
         limit, offset = 500, 0
-    sort_by  = params.pop("sort_by", None)
+    sort_by = params.pop("sort_by", None)
     sort_dir = params.pop("sort_dir", "asc").lower()
-    q        = params.pop("q", "").strip().lower()
+    q = params.pop("q", "").strip().lower()
 
     filtered: list[dict] = list(sheet.data or [])
 
@@ -104,32 +106,37 @@ async def query_sheet_data(
         if not value:
             continue
         if param.endswith("_like"):
-            col = param[:-5]; v = value.lower()
+            col = param[:-5]
+            v = value.lower()
             filtered = [r for r in filtered if v in str(r.get(col, "")).lower()]
         elif param.endswith("_gte"):
             col = param[:-4]
             try:
                 f = float(value)
                 filtered = [r for r in filtered if (_f := _to_float(r.get(col))) is not None and _f >= f]
-            except ValueError: pass
+            except ValueError:
+                pass
         elif param.endswith("_lte"):
             col = param[:-4]
             try:
                 f = float(value)
                 filtered = [r for r in filtered if (_f := _to_float(r.get(col))) is not None and _f <= f]
-            except ValueError: pass
+            except ValueError:
+                pass
         elif param.endswith("_gt"):
             col = param[:-3]
             try:
                 f = float(value)
                 filtered = [r for r in filtered if (_f := _to_float(r.get(col))) is not None and _f > f]
-            except ValueError: pass
+            except ValueError:
+                pass
         elif param.endswith("_lt"):
             col = param[:-3]
             try:
                 f = float(value)
                 filtered = [r for r in filtered if (_f := _to_float(r.get(col))) is not None and _f < f]
-            except ValueError: pass
+            except ValueError:
+                pass
         elif param.endswith("_in"):
             col = param[:-3]
             vals = {v.strip() for v in value.split(",")}
@@ -143,12 +150,14 @@ async def query_sheet_data(
     if sort_by and sort_by in col_types:
         reverse = sort_dir == "desc"
         is_numeric = col_types[sort_by] in ("number", "currency")
+
         def _sort_key(r):
             val = r.get(sort_by)
             if is_numeric:
                 f = _to_float(val)
                 return (0, f if f is not None else float("-inf"))
             return (1, str(val or "").lower())
+
         try:
             filtered.sort(key=_sort_key, reverse=reverse)
         except Exception:

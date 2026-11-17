@@ -1,12 +1,13 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+
+from pydantic import BaseModel, Field
 
 
 class FormulaEvaluateRequest(BaseModel):
-    expression: str
+    expression: str = Field(min_length=1, max_length=2000)
     sheet_id: uuid.UUID | None = None
-    context: dict = {}
+    context: dict = Field(default_factory=dict)
 
 
 class FormulaResult(BaseModel):
@@ -18,7 +19,7 @@ class FormulaResult(BaseModel):
 
 
 class FormulaExplainRequest(BaseModel):
-    expression: str
+    expression: str = Field(min_length=1, max_length=2000)
 
 
 class FormulaExplainResult(BaseModel):

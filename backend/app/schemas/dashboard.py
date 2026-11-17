@@ -1,16 +1,17 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+
+from pydantic import BaseModel, Field
 
 
 class DashboardCreate(BaseModel):
     workbook_id: uuid.UUID
-    name: str
-    layout: list = []
+    name: str = Field(min_length=1, max_length=255)
+    layout: list = Field(default_factory=list)
 
 
 class DashboardUpdate(BaseModel):
-    name: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
     layout: list | None = None
     is_public: bool | None = None
 

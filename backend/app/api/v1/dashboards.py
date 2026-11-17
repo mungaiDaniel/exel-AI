@@ -1,15 +1,16 @@
-import uuid
 import secrets
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+import uuid
 
-from app.core.database import get_db
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_current_user
-from app.models.user import User
+from app.core.database import get_db
 from app.models.dashboard import Dashboard
+from app.models.user import User
 from app.models.workbook import Workbook
-from app.schemas.dashboard import DashboardCreate, DashboardUpdate, DashboardOut
+from app.schemas.dashboard import DashboardCreate, DashboardOut, DashboardUpdate
 
 router = APIRouter()
 
@@ -27,9 +28,7 @@ async def list_dashboards(
     current_user: User = Depends(get_current_user),
 ):
     result = await db.execute(
-        select(Dashboard)
-        .where(Dashboard.user_id == current_user.id)
-        .order_by(Dashboard.updated_at.desc())
+        select(Dashboard).where(Dashboard.user_id == current_user.id).order_by(Dashboard.updated_at.desc())
     )
     return result.scalars().all()
 
@@ -72,9 +71,12 @@ async def update_dashboard(
     current_user: User = Depends(get_current_user),
 ):
     d = await _own_dashboard(dashboard_id, current_user, db)
-    if data.name is not None:      d.name = data.name
-    if data.layout is not None:    d.layout = data.layout
-    if data.is_public is not None: d.is_public = data.is_public
+    if data.name is not None:
+        d.name = data.name
+    if data.layout is not None:
+        d.layout = data.layout
+    if data.is_public is not None:
+        d.is_public = data.is_public
     await db.flush()
     await db.refresh(d)
     return d
@@ -121,9 +123,7 @@ async def get_shared_dashboard(
     token: str,
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Dashboard).where(Dashboard.share_token == token, Dashboard.is_public == True)
-    )
+    result = await db.execute(select(Dashboard).where(Dashboard.share_token == token, Dashboard.is_public.is_(True)))
     d = result.scalar_one_or_none()
     if not d:
         raise HTTPException(404, "Shared dashboard not found or access revoked")

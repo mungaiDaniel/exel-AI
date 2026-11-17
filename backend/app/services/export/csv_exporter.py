@@ -1,6 +1,5 @@
 import csv
 import io
-from typing import Any
 
 
 def export_to_csv(columns: list[dict], data: list[dict]) -> bytes:

@@ -1,15 +1,18 @@
+import logging
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
 from app.api.deps import get_current_user
-from app.models.user import User
+from app.core.database import get_db
 from app.models.sheet import Sheet
+from app.models.user import User
 from app.models.workbook import Workbook
 from app.services.ai.anomaly_detector import detect_statistical_anomalies, explain_anomalies
 
 router = APIRouter()
+log = logging.getLogger(__name__)
 
 
 @router.get("/{sheet_id}")
@@ -32,6 +35,7 @@ async def get_anomalies(
         try:
             explanation = await explain_anomalies(sheet.name, anomalies)
         except Exception:
+            log.warning("Anomaly explanation failed", exc_info=True)
             explanation = f"Found {len(anomalies)} statistical outlier(s). Check values with z-score > 2.5."
 
     return {

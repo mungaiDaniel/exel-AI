@@ -1,4 +1,3 @@
-import json
 from app.models.sheet import Sheet
 
 
@@ -7,18 +6,12 @@ def build_sheet_context(sheet: Sheet, max_rows: int = 20) -> str:
     cols = sheet.columns or []
     data = (sheet.data or [])[:max_rows]
 
-    col_summary = ", ".join(
-        f"{c['name']} ({c['type']}, {c.get('unique_count', '?')} unique)"
-        for c in cols
-    )
+    col_summary = ", ".join(f"{c['name']} ({c['type']}, {c.get('unique_count', '?')} unique)" for c in cols)
 
     rows_preview = ""
     if data:
         headers = [c["name"] for c in cols]
-        rows_preview = "\n".join(
-            "  " + " | ".join(str(row.get(h, "")) for h in headers)
-            for row in data[:10]
-        )
+        rows_preview = "\n".join("  " + " | ".join(str(row.get(h, "")) for h in headers) for row in data[:10])
 
     return (
         f'Sheet: "{sheet.name}" — {sheet.row_count} rows, {sheet.col_count} columns\n'

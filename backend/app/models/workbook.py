@@ -1,16 +1,20 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, BigInteger, Integer, func, ForeignKey
+
+from sqlalchemy import BigInteger, ForeignKey, Integer, String, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from app.models.base import Base
+
+from app.models.base import JSONB, Base
 
 
 class Workbook(Base):
     __tablename__ = "workbooks"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     file_name: Mapped[str] = mapped_column(String(500), nullable=False)
     file_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -24,5 +28,7 @@ class Workbook(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="workbooks")
     sheets: Mapped[list["Sheet"]] = relationship("Sheet", back_populates="workbook", cascade="all, delete-orphan")
-    dashboards: Mapped[list["Dashboard"]] = relationship("Dashboard", back_populates="workbook", cascade="all, delete-orphan")
+    dashboards: Mapped[list["Dashboard"]] = relationship(
+        "Dashboard", back_populates="workbook", cascade="all, delete-orphan"
+    )
     chat_messages: Mapped[list["ChatMessage"]] = relationship("ChatMessage", back_populates="workbook")

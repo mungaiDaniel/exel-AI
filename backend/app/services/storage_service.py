@@ -1,8 +1,10 @@
 import io
 from pathlib import Path
+
 from minio import Minio
 from minio.error import S3Error
-from config import settings
+
+from app.core.config import settings
 
 
 class StorageService:
@@ -72,6 +74,7 @@ class StorageService:
             return str((self.local_root / object_name).as_posix())
 
         from datetime import timedelta
+
         return self.client.presigned_get_object(
             settings.MINIO_BUCKET, object_name, expires=timedelta(seconds=expires_seconds)
         )
