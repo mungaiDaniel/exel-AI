@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --color-brand-primary:   #1A56DB;
+  --color-brand-secondary: #0E9F6E;
+  --color-brand-accent:    #FF6B35;
+  --color-brand-purple:    #7C3AED;
+
+  --color-bg-base:         #0F1117;
+  --color-bg-surface:      #1A1D27;
+  --color-bg-elevated:     #22263A;
+  --color-bg-hover:        #2A2E42;
+  --color-border:          #2E3248;
+  --color-border-subtle:   #1E2133;
+
+  --color-text-primary:    #F1F3F9;
+  --color-text-secondary:  #8B90A7;
+  --color-text-tertiary:   #4E5370;
+  --color-text-on-brand:   #FFFFFF;
+
+  --chart-1: #1A56DB;
+  --chart-2: #0E9F6E;
+  --chart-3: #FF6B35;
+  --chart-4: #7C3AED;
+  --chart-5: #F05252;
+  --chart-6: #FBBF24;
+  --chart-7: #3B82F6;
+  --chart-8: #10B981;
+
+  --color-success: #0E9F6E;
+  --color-warning: #FBBF24;
+  --color-error:   #F05252;
+  --color-info:    #3B82F6;
+
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:   0 4px 12px rgba(0,0,0,0.5);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.6);
+  --shadow-glow: 0 0 24px rgba(26,86,219,0.3);
+
+  --transition-fast:   150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.2; }
+h4, h5, h6  { font-family: var(--font-body); font-weight: 600; }
+
+h1 { font-size: clamp(2rem, 4vw, 3rem);   font-weight: 800; }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
+h3 { font-size: 1.25rem;                  font-weight: 600; }
+
+.stat-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-tertiary); }
+
+/* Recharts tooltip */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--color-text-primary) !important;
+}
