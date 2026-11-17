@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import GridLayout, { type Layout } from 'react-grid-layout'
+import RGL, { type Layout, type ReactGridLayoutProps } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import {
   ArrowLeft, Save, Share2, Link, X, Plus, BarChart3, TrendingUp,
-  PieChart as PieIcon, Activity, Scatter, Check, Copy, Sparkles,
+  PieChart as PieIcon, Activity, ScatterChart as Scatter, Check, Copy, Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -21,6 +21,9 @@ import { chartsApi } from '@/api/charts.api'
 import type { Sheet, SheetData } from '@/types/workbook.types'
 import type { ChartSuggestion } from '@/types/chart.types'
 import { cn } from '@/utils/cn'
+
+// @types/react-grid-layout predates React 18 JSX typings for class components.
+const GridLayout = RGL as unknown as React.ComponentType<ReactGridLayoutProps & { children?: React.ReactNode }>
 
 const CHART_ICONS: Record<string, React.ElementType> = {
   bar: BarChart3, line: TrendingUp, area: Activity, pie: PieIcon, scatter: Scatter,
